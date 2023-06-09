@@ -10,6 +10,26 @@ class Model
     protected $order_by_type;
     protected $sql;
     protected $val = [];
+    protected $allowedColumns = [];
+
+    // check if column is allowed
+    private function checkAllowedColumn(&$data)
+    {
+
+        foreach ($data as $key => $value) {
+            if (!in_array($key, $this->allowedColumns)) {
+                unset($data[$key]);
+            }
+        }
+    }
+    private function checkAllAllowedColumn(&$setData = [], &$whereEqual = [],  &$whereNotEqual = [], &$whereOr = [])
+    {
+        if (!empty($setData)) $this->checkAllowedColumn($setData);
+        if (!empty($whereEqual)) $this->checkAllowedColumn($whereEqual);
+
+        if (!empty($whereNotEqual)) $this->checkAllowedColumn($whereNotEqual);
+        if (!empty($whereOr)) $this->checkAllowedColumn($whereOr);
+    }
 
 
     // build where clause
@@ -91,6 +111,10 @@ class Model
     // Insert related methods
     public function insert($columnsAndValues)
     {
+        if (!empty($this->allowedColumns) && isset($this->allowedColumns)) {
+            $this->checkAllowedColumn($columnsAndValues);
+        }
+
         $keys = array_keys($columnsAndValues);
         $this->sql = 'INSERT INTO ' . $this->table . ' (' . implode(',', $keys) . ') VALUES (:' . implode(',:', $keys) . ')';
         $this->query($this->sql, $columnsAndValues);
@@ -98,6 +122,10 @@ class Model
 
     public function update($setData, $whereEqual = [],  $whereNotEqual = [], $whereOr = [])
     {
+        if (!empty($this->allowedColumns) && isset($this->allowedColumns)) {
+            $this->checkAllAllowedColumn($setData, $whereEqual, $whereNotEqual, $whereOr);
+        }
+
         $this->sql = 'UPDATE ' . $this->table . ' SET ';
         foreach ($setData as $key => $value) {
             $this->sql .= $key . ' = ?, ';
@@ -105,8 +133,8 @@ class Model
         }
         $this->sql = rtrim($this->sql, ', ');
         $this->where($whereEqual, $whereNotEqual, $whereOr);
-
-        $this->query($this->sql, $this->val);
+        echo $this->sql;
+        // $this->query($this->sql, $this->val);
         return false;
     }
     // Delete related methods

@@ -8,3 +8,11 @@ function show($arr, $die = false)
         die();
     }
 }
+
+function esc($str)
+{
+    return htmlspecialchars($str);
+}
+
+
+// print_r result in a .txt file

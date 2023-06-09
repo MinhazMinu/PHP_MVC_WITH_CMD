@@ -10,7 +10,7 @@ class APP
     private function splitURL()
     {
         $URL = $_GET['url'] ?? "Home";
-        $URL = explode("/", $URL);
+        $URL = explode("/", trim($URL, "/"));
         return $URL;
     }
 
@@ -21,13 +21,21 @@ class APP
         if (file_exists($filename)) {
             require_once($filename);
             $this->controller = ucfirst($URL[0]);
+            unset($URL[0]);
         } else {
             $filename = "../app/controllers/_404.php";
             require_once($filename);
             $this->controller = "_404";
         }
+        // check if method exist
+        if (isset($URL[1])) {
+            if (method_exists($this->controller, $URL[1])) {
+                $this->method = $URL[1];
+                unset($URL[1]);
+            }
+        }
 
         $controller = new $this->controller;
-        call_user_func_array([$controller, $this->method], []);
+        call_user_func_array([$controller, $this->method], $URL);
     }
 }

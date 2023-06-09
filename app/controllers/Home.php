@@ -6,7 +6,7 @@ class Home extends Controller
     {
         $user = new User;
 
-        $user->update(['name' => 'bb', 'age' => 48], ['age' => 38], ['name' => 'minhaz']);
+        $user->update(['name' => 'bb', 'sdads' => 48]);
         $this->view("home");
     }
 }
