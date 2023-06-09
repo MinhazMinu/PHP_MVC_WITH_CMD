@@ -3,7 +3,7 @@
 class Model
 {
     use Database;
-    protected $table = 'users';
+    protected $table;
     protected $limit;
     protected $offset;
     protected $order_by;

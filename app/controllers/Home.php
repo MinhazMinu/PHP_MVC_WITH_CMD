@@ -4,9 +4,9 @@ class Home extends Controller
 {
     public function index()
     {
-        $model = new Model;
+        $user = new User;
 
-        $model->update(['name' => 'aa', 'age' => 38], ['age' => 30], ['name' => 'minhaz']);
+        $user->update(['name' => 'bb', 'age' => 48], ['age' => 38], ['name' => 'minhaz']);
         $this->view("home");
     }
 }
