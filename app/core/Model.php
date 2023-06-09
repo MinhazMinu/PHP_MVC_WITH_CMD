@@ -11,6 +11,42 @@ class Model
     protected $sql;
     protected $val = [];
 
+
+    // build where clause
+    private function where($whereEqual = [], $whereNotEqual = [],  $whereOr = [])
+    {
+        if (!empty($whereEqual) || !empty($whereNotEqual) || !empty($whereOr)) {
+            $this->sql .= ' WHERE ';
+        }
+        if (!empty($whereEqual)) {
+            foreach ($whereEqual as $key => $value) {
+                $this->sql .= $key . ' = ? AND ';
+                array_push($this->val, $value);
+            }
+        }
+
+        if (!empty($whereNotEqual)) {
+            foreach ($whereNotEqual as $key => $value) {
+                $this->sql .= $key . ' != ? AND ';
+                array_push($this->val, $value);
+            }
+        }
+        if (!empty($whereOr) && isset($whereOr)) {
+
+            $this->sql .= '(';
+            foreach ($whereOr as  $v) {
+                foreach ($v as $key => $value) {
+                    $this->sql .= $key . ' = ? OR ';
+                    array_push($this->val, $value);
+                }
+            }
+            $this->sql = rtrim($this->sql, ' OR ');
+            $this->sql .= ')';
+        }
+
+        $this->sql = rtrim($this->sql, ' AND ');
+    }
+
     // Select related methods
     public function orderBy($order_by = 'id', $order_by_type = 'DESC')
     {
@@ -32,31 +68,17 @@ class Model
         $this->sql .= ' OFFSET ' . $this->offset;
         return $this;
     }
-    public function select($data = [], $data_not = [])
+    public function select($whereEqual = [], $whereNotEqual = [],  $whereOr = [])
     {
 
         $this->sql = 'SELECT * FROM ' . $this->table;
+        $this->where($whereEqual, $whereNotEqual, $whereOr);
 
-        if (!empty($data) || !empty($data_not)) {
-            $this->sql .= ' WHERE ';
-        }
-        if (!empty($data)) {
-            foreach ($data as $key => $value) {
-                $this->sql .= $key . ' = ? AND ';
-                array_push($this->val, $value);
-            }
-        }
-        if (!empty($data_not)) {
-            foreach ($data_not as $key => $value) {
-                $this->sql .= $key . ' != ? AND ';
-                array_push($this->val, $value);
-            }
-        }
-        $this->sql = rtrim($this->sql, ' AND ');
         return $this;
     }
     public function get()
     {
+        echo $this->sql;
         return $this->query($this->sql, $this->val);
     }
 
@@ -67,16 +89,33 @@ class Model
     }
 
     // Insert related methods
-    public function insert($data)
+    public function insert($columnsAndValues)
     {
-        $keys = array_keys($data);
+        $keys = array_keys($columnsAndValues);
         $this->sql = 'INSERT INTO ' . $this->table . ' (' . implode(',', $keys) . ') VALUES (:' . implode(',:', $keys) . ')';
-        $this->query($this->sql, $data);
+        $this->query($this->sql, $columnsAndValues);
     }
-    public function update($id, $data, $id_column = 'id')
+
+    public function update($setData, $whereEqual = [],  $whereNotEqual = [], $whereOr = [])
     {
+        $this->sql = 'UPDATE ' . $this->table . ' SET ';
+        foreach ($setData as $key => $value) {
+            $this->sql .= $key . ' = ?, ';
+            $this->val[] = $value;
+        }
+        $this->sql = rtrim($this->sql, ', ');
+        $this->where($whereEqual, $whereNotEqual, $whereOr);
+
+        $this->query($this->sql, $this->val);
+        return false;
     }
-    public function delete($id, $id_column = 'id')
+    // Delete related methods
+    public function delete($whereEqual,  $whereNotEqual = [], $whereOr = [])
     {
+        $this->sql = 'DELETE FROM ' . $this->table;
+        $this->where($whereEqual, $whereNotEqual, $whereOr);
+
+        $this->query($this->sql, $this->val);
+        return false;
     }
 }
