@@ -6,15 +6,12 @@ use \Core\Session;
 
 defined('ROOTPATH') or exit('Access Denied!');
 
-class Home extends MainController
+class Logout extends MainController
 {
     public function index()
     {
         $ses = new Session;
-        if (!$ses->is_logged_in()) {
-            redirect('login');
-        }
-
-        $this->view("home");
+        $ses->logout();
+        redirect('login');
     }
 }

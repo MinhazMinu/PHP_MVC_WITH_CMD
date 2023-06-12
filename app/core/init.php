@@ -9,6 +9,6 @@ spl_autoload_register(function ($className) {
 require "config.php";
 require "functions.php";
 require "Database.php";
-require "Model.php";
+require "MainModel.php";
 require "MainController.php";
 require "App.php";

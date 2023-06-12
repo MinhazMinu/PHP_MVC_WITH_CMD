@@ -19,7 +19,7 @@ trait Database
             $check =  $statement->execute($data);
 
             if ($check) {
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $result = $statement->fetchAll(\PDO::FETCH_OBJ);
 
                 if (is_array($result) && count($result) > 0) {
                     return $result;
@@ -37,7 +37,7 @@ trait Database
         $statement = $this->connect()->prepare($query);
         $check =  $statement->execute($data);
         if ($check) {
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $result = $statement->fetchAll(\PDO::FETCH_OBJ);
             if (is_array($result) && count($result) > 0) {
                 return $result[0];
             }

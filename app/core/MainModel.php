@@ -2,7 +2,7 @@
 
 namespace Model;
 
-class Model
+class MainModel
 {
     use Database;
     protected $table;
@@ -13,6 +13,9 @@ class Model
     protected $sql;
     protected $val = [];
     protected $allowedColumns = [];
+    protected $errors = [];
+    protected $primaryKey = 'id';
+    protected $validationRules = [];
 
     // check if column is allowed
     private function checkAllowedColumn(&$data)
@@ -107,7 +110,7 @@ class Model
     public function getFirst()
     {
         $this->limit(1);
-        return $this->query($this->sql, $this->val);
+        return $this->query($this->sql, $this->val)[0];
     }
 
     // Insert related methods
@@ -146,6 +149,109 @@ class Model
         $this->where($whereEqual, $whereNotEqual, $whereOr);
 
         $this->query($this->sql, $this->val);
+        return false;
+    }
+
+    // get individual error
+    public function getError($key)
+    {
+        if (!empty($this->errors[$key]))
+            return $this->errors[$key];
+
+        return "";
+    }
+
+    // get primary key
+    protected function getPrimaryKey()
+    {
+        return $this->primaryKey;
+    }
+
+    // validate data
+    public function validate($data)
+    {
+
+        $this->errors = [];
+
+        if (!empty($this->validationRules)) {
+            foreach ($this->validationRules as $column => $rules) {
+
+                if (!isset($data[$column]))
+                    continue;
+
+                foreach ($rules as $rule) {
+
+                    switch ($rule) {
+                        case 'required':
+
+                            if (empty($data[$column]))
+                                $this->errors[$column] = ucfirst($column) . " is required";
+                            break;
+                        case 'email':
+
+                            if (!filter_var(trim($data[$column]), FILTER_VALIDATE_EMAIL))
+                                $this->errors[$column] = "Invalid email address";
+                            break;
+                        case 'alpha':
+
+                            if (!preg_match("/^[a-zA-Z]+$/", trim($data[$column])))
+                                $this->errors[$column] = ucfirst($column) . " should only have alphabetical letters without spaces";
+                            break;
+                        case 'alpha_space':
+
+                            if (!preg_match("/^[a-zA-Z ]+$/", trim($data[$column])))
+                                $this->errors[$column] = ucfirst($column) . " should only have alphabetical letters & spaces";
+                            break;
+                        case 'alpha_numeric':
+
+                            if (!preg_match("/^[a-zA-Z0-9]+$/", trim($data[$column])))
+                                $this->errors[$column] = ucfirst($column) . " should only have alphabetical letters & spaces";
+                            break;
+                        case 'alpha_numeric_symbol':
+
+                            if (!preg_match("/^[a-zA-Z0-9\-\_\$\%\*\[\]\(\)\& ]+$/", trim($data[$column])))
+                                $this->errors[$column] = ucfirst($column) . " should only have alphabetical letters, number & spaces";
+                            break;
+                        case 'alpha_symbol':
+
+                            if (!preg_match("/^[a-zA-Z\-\_\$\%\*\[\]\(\)\& ]+$/", trim($data[$column])))
+                                $this->errors[$column] = ucfirst($column) . " should only have alphabetical letters & spaces";
+                            break;
+
+                        case 'not_less_than_8_chars':
+
+                            if (strlen(trim($data[$column])) < 8)
+                                $this->errors[$column] = ucfirst($column) . " should not be less than 8 characters";
+                            break;
+
+                        case 'unique':
+
+                            $key = $this->getPrimaryKey();
+                            if (!empty($data[$key])) {
+                                //edit mode
+                                if ($this->select([$column => $data[$column]], [$key => $data[$key]])->getFirst()) {
+                                    $this->errors[$column] = ucfirst($column) . " should be unique";
+                                }
+                            } else {
+                                //insert mode
+                                if ($this->select([$column => $data[$column]])->getFirst()) {
+                                    $this->errors[$column] = ucfirst($column) . " should be unique";
+                                }
+                            }
+                            break;
+
+                        default:
+                            $this->errors['rules'] = "The rule " . $rule . " was not found!";
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (empty($this->errors)) {
+            return true;
+        }
+
         return false;
     }
 }
