@@ -1,6 +1,8 @@
 <?php
 
-class Controller
+namespace Controller;
+
+class MainController
 {
     public function view($name)
     {

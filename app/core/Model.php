@@ -1,5 +1,7 @@
 <?php
 
+namespace Model;
+
 class Model
 {
     use Database;

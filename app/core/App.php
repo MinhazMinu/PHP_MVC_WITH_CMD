@@ -1,4 +1,7 @@
 <?php
+
+// namespace Core;
+
 class APP
 {
     private $controller = "Home";
@@ -27,15 +30,16 @@ class APP
             require_once($filename);
             $this->controller = "_404";
         }
-        // check if method exist
-        if (isset($URL[1])) {
-            if (method_exists($this->controller, $URL[1])) {
+        $controller = new ('\Controller\\' . $this->controller);
+
+        /** select method **/
+        if (!empty($URL[1])) {
+            if (method_exists($controller, $URL[1])) {
                 $this->method = $URL[1];
                 unset($URL[1]);
             }
         }
 
-        $controller = new $this->controller;
         call_user_func_array([$controller, $this->method], $URL);
     }
 }
