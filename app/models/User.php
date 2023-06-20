@@ -24,7 +24,24 @@ class User extends MainModel
 		alpha_symbol
      *
      ****************************/
-    protected $validationRules = [
+    protected $onInsertValidationRules = [
+
+        'email' => [
+            'email',
+            'unique',
+            'required',
+        ],
+        'username' => [
+            'alpha',
+            'required',
+        ],
+        'password' => [
+            'not_less_than_8_chars',
+            'required',
+        ],
+    ];
+
+    protected $onUpdateValidationRules = [
 
         'email' => [
             'email',
